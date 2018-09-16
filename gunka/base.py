@@ -77,6 +77,10 @@ class Unit():
         self.state.success = True
         raise self.ConclusionSignal(**kwargs)
 
+    def fail(self, **kwargs):
+        """Note a serious problem that is not an internal error."""
+        raise self.ConclusionSignal(**kwargs)
+
     def panic(self):
         """Note an internal error in the program."""
         raise self.ConclusionSignal(error=True, propagate=True)
