@@ -1,7 +1,7 @@
 ## Gunka:
 
 Gunka delimits and names the individual steps of any piece of work.
-It’s named for the lojban *gunka* (“work”).
+It’s named for the Lojban word *gunka* (“work”).
 
 Gunka is intended to provide an intermediate level of abstraction in large
 applications, where the end user won’t be interested in the smallest details
@@ -17,7 +17,7 @@ Gunka is in a pre-alpha stage. An even earlier draft used Trio for concurrency,
 but the current plan is to use the standard asyncio library. This decision is
 based on the existing plan, as of 2018-07, to add a feature like Trio’s
 nurseries to asyncio in Python 3.8 (see [a talk on that](https://www.youtube.com/watch?v=ReXxO_azV-w)), which would make Trio
-an unnecessary dependency.
+an unnecessary dependency. Until then, asyncio.gather is used as a placeholder.
 
 ### Design goals
 
@@ -41,9 +41,9 @@ build target. Refer to the included Makefile.
 
 To contact the author, please use the following information:
 
-Viktor Eikman
-viktor.eikman@gmail.com
-Grevegårdsvägen 164, 42161 Västra Frölunda, SWEDEN
+    Viktor Eikman
+    viktor.eikman@gmail.com
+    Grevegårdsvägen 164, 42161 Västra Frölunda, SWEDEN
 
 Please submit your contribution to this project for review.
 
