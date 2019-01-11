@@ -1,7 +1,7 @@
-## Gunka:
+## Gunka
 
-Gunka delimits and names the individual steps of any piece of work.
-It’s named for the Lojban word *gunka* (“work”).
+This library delimits and names the individual steps of any piece of work.
+It’s named for the Lojban word *gunka* (meaning “work”).
 
 Gunka is intended to provide an intermediate level of abstraction in large
 applications, where the end user won’t be interested in the smallest details
