@@ -38,8 +38,11 @@ class Unit():
         def __init__(self):
             """Initialize pessimistically. Values are updated by the unit.
 
-            Times of starting and stopping should be UTC datetime objects.
-            The remaining properties are Booleans at all times.
+            Times of starting and stopping should be timezone-aware UTC
+            datetime objects when set, but default to None to indicate that
+            the unit has not been started nor stopped.
+
+            The remaining properties are Booleans at all  times.
 
             The ‘cancelled’ property describes whether the work was cancelled,
             in the strict asyncio sense of the word.
@@ -85,10 +88,16 @@ class Unit():
         """Note an internal error in the program."""
         raise self.ConclusionSignal(error=True, propagate=True)
 
+    def _get_current_time(self):
+        """Return the current UTC date and time."""
+        return datetime.datetime.now(tz=datetime.timezone.utc)
+
     async def __call__(self):
         """Perform work. Return self."""
+        assert self.state.time_started is None
+
         try:
-            self.state.time_started = datetime.datetime.utcnow()
+            self.state.time_started = self._get_current_time()
             await self._work(self, **self._inputs)
         except asyncio.CancelledError:
             self.state.error = False
@@ -104,7 +113,7 @@ class Unit():
             self.state.error = False
             self.state.success = True
         finally:
-            self.state.time_stopped = datetime.datetime.utcnow()
+            self.state.time_stopped = self._get_current_time()
             self._teardown()
 
         return self
