@@ -9,6 +9,7 @@
 # Standard:
 import datetime
 import inspect
+import asyncio
 
 # Local:
 from . import utils
@@ -40,9 +41,8 @@ class Unit():
             Times of starting and stopping should be UTC datetime objects.
             The remaining properties are Booleans at all times.
 
-            The ‘cancelled’ property describes whether work should continue.
-            It is intended to serve as the subject of a callback function in
-            long-running operations.
+            The ‘cancelled’ property describes whether the work was cancelled,
+            in the strict asyncio sense of the word.
 
             The ‘error’ property describes the program of which the unit
             is a part. It should take precedence over the ‘success’ member,
@@ -85,32 +85,15 @@ class Unit():
         """Note an internal error in the program."""
         raise self.ConclusionSignal(error=True, propagate=True)
 
-    def mark_cancellation(self):
-        """Set a flag to call off any further work. Propagate to children.
-
-        This does not immediately halt work.
-
-        """
-        self.state.cancelled = True
-        for child in self.children:
-            child.cancel()
-
-    def _conclude_if_cancelled(self, **kwargs):
-        """Check for cancellation. Stop if the cancellation flag is set.
-
-        This should be done periodically in any lengthy unit, in such a way
-        that loose ends are minimized.
-
-        """
-        if self.state.cancelled:
-            raise self.ConclusionSignal(**kwargs)
-
     async def __call__(self):
-        """Perform work."""
+        """Perform work. Return self."""
         try:
-            self._conclude_if_cancelled()
             self.state.time_started = datetime.datetime.utcnow()
             await self._work(self, **self._inputs)
+        except asyncio.CancelledError:
+            self.state.error = False
+            self.state.cancelled = True
+            raise  # Propagated for signalling.
         except self.ConclusionSignal as signal:
             self.state.error = signal.error
             if signal.propagate:
@@ -122,6 +105,7 @@ class Unit():
         finally:
             self.state.time_stopped = datetime.datetime.utcnow()
             self._teardown()
+
         return self
 
     def __bool__(self):
