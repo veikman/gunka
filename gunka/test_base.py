@@ -35,7 +35,7 @@ def test_boolean_noop_true():
 
     assert unit.state.time_started
     assert unit.state.time_stopped
-    assert unit.state.success
+    assert not unit.state.failure
     assert unit
 
 

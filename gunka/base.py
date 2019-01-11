@@ -34,22 +34,28 @@ class Unit():
         value. An expansion could provide a translation to an Enum or other
         serializable descriptor for such an overall state.
 
+        Properties are updated by the unit.
+
         """
         def __init__(self):
-            """Initialize pessimistically. Values are updated by the unit.
+            """Initialize pessimistically.
 
             Times of starting and stopping should be timezone-aware UTC
             datetime objects when set, but default to None to indicate that
             the unit has not been started nor stopped.
 
-            The remaining properties are Booleans at all  times.
+            The remaining properties are Booleans at all times:
 
-            The ‘cancelled’ property describes whether the work was cancelled,
-            in the strict asyncio sense of the word.
+            * The ‘cancelled’ property describes whether the work was
+              cancelled, in the strict asyncio sense of the word.
 
-            The ‘error’ property describes the program of which the unit
-            is a part. It should take precedence over the ‘success’ member,
-            which describes the work itself.
+            * The ‘error’ property also describes the program of which the unit
+              is a part.
+
+            * The ‘failure’ property describes the work itself.
+
+            These properties should only be checked when the unit is complete.
+            Their order of precedence is as listed here.
 
             """
             self.time_started = None
@@ -57,7 +63,7 @@ class Unit():
 
             self.cancelled = False
             self.error = True       # Deliberate pessimism.
-            self.success = False
+            self.failure = True     # Deliberate pessimism.
 
     class ConclusionSignal(Exception):
         """A signal to conclude work."""
@@ -75,9 +81,9 @@ class Unit():
         self.children = list()
         self.outputs = dict()
 
-    def retire(self, **kwargs):
-        """Note success, leaving any remaining work undone."""
-        self.state.success = True
+    def succeed(self, **kwargs):
+        """Retire. Note a success, leaving any remaining work undone."""
+        self.state.failure = False
         raise self.ConclusionSignal(**kwargs)
 
     def fail(self, **kwargs):
@@ -100,7 +106,6 @@ class Unit():
             self.state.time_started = self._get_current_time()
             await self._work(self, **self._inputs)
         except asyncio.CancelledError:
-            self.state.error = False
             self.state.cancelled = True
             raise  # Propagated for signalling.
         except self.ConclusionSignal as signal:
@@ -109,9 +114,9 @@ class Unit():
                 signal.error = False
                 raise
         else:
-            # No conclusion. Default to assume a non-error success.
+            # Work passed without incident: No known error or failure occurred.
             self.state.error = False
-            self.state.success = True
+            self.state.failure = False
         finally:
             self.state.time_stopped = self._get_current_time()
             self._teardown()

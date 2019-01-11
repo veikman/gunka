@@ -50,7 +50,7 @@ def test_nonerror_success(sou):
     assert not pred.nonerror_success(sou)
     sou.state.error = False
     assert not pred.nonerror_success(sou)
-    sou.state.success = True
+    sou.state.failure = False
     assert pred.nonerror_success(sou)
 
     # Reset the error flag. This should never happen in real-world use.
