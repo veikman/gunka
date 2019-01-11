@@ -7,9 +7,9 @@
 
 
 # Standard:
+import asyncio
 import datetime
 import inspect
-import asyncio
 
 # Local:
 from . import utils
@@ -73,7 +73,7 @@ class Unit():
         self.outputs = dict()
 
     def retire(self, **kwargs):
-        """Finish early."""
+        """Note success, leaving any remaining work undone."""
         self.state.success = True
         raise self.ConclusionSignal(**kwargs)
 
@@ -100,6 +100,7 @@ class Unit():
                 signal.error = False
                 raise
         else:
+            # No conclusion. Default to assume a non-error success.
             self.state.error = False
             self.state.success = True
         finally:
@@ -109,4 +110,10 @@ class Unit():
         return self
 
     def __bool__(self):
+        """Represent the unit of work in a Boolean context.
+
+        The unit is considered true if it and its children are all complete
+        and succeeded without a noted program error.
+
+        """
         return utils.first(lambda u: not pred.acceptable(u), self) is None
