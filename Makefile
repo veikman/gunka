@@ -2,8 +2,8 @@
 
 PYEXEC := python3.7
 NAME := gunka
-UNDERSCORE = $(subst -,_,$(NAME))
-DEBNAME = python3-$(NAME)
+UNDERSCORE := $(subst -,_,$(NAME))
+DEBNAME := python3-$(NAME)
 
 test:
 	$(PYEXEC) -m pytest
@@ -21,6 +21,6 @@ deb-install: deb-package
 	sudo dpkg -i $(DEBNAME)_*.deb
 
 clean:
-	rm $(DEBNAME)_*.deb || true
-	rm $(UNDERSCORE)-*.tar.gz || true
-	rm -rf deb_dist dist $(UNDERSCORE).egg-info || true
+	-rm $(DEBNAME)_*.deb
+	-rm $(UNDERSCORE)-*.tar.gz
+	-rm -rf deb_dist dist $(UNDERSCORE).egg-info
