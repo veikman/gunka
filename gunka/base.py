@@ -37,6 +37,7 @@ class Unit():
         Properties are updated by the unit.
 
         """
+
         def __init__(self):
             """Initialize pessimistically.
 
@@ -67,11 +68,14 @@ class Unit():
 
     class ConclusionSignal(Exception):
         """A signal to conclude work."""
+
         def __init__(self, error=False, propagate=False):
+            """Initialize."""
             self.error = error
             self.propagate = propagate
 
     def __init__(self, work=None, inputs=None, teardown=lambda: None):
+        """Initialize."""
         assert inspect.iscoroutinefunction(work)
         self._work = work
         self._inputs = inputs or dict()

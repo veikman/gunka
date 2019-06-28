@@ -33,6 +33,7 @@ def sou():
 
 
 def test_complete(sou):
+    """Exercise the “complete” predicate."""
     # Gradually populate the state.
     assert not pred.complete(sou)
     sou.state.time_started = datetime.datetime.utcnow()
@@ -46,6 +47,7 @@ def test_complete(sou):
 
 
 def test_nonerror_success(sou):
+    """Exercise the “nonerror_success” predicate."""
     # Gradually populate the state.
     assert not pred.nonerror_success(sou)
     sou.state.error = False
@@ -59,18 +61,21 @@ def test_nonerror_success(sou):
 
 
 def test_acceptable_true(monkeypatch, sou):
+    """Check that the “acceptable” predicate clears a patched-over SOU."""
     monkeypatch.setattr(pred, 'complete', lambda _: True)
     monkeypatch.setattr(pred, 'nonerror_success', lambda _: True)
     assert pred.acceptable(sou)
 
 
 def test_acceptable_false_incomplete(monkeypatch, sou):
+    """Check that the “acceptable” predicate requires completeness."""
     monkeypatch.setattr(pred, 'complete', lambda _: False)
     monkeypatch.setattr(pred, 'nonerror_success', lambda _: True)
     assert not pred.acceptable(sou)
 
 
 def test_acceptable_false_failure(monkeypatch, sou):
+    """Check that the “acceptable” predicate requires a non-error success."""
     monkeypatch.setattr(pred, 'complete', lambda _: True)
     monkeypatch.setattr(pred, 'nonerror_success', lambda _: False)
     assert not pred.acceptable(sou)
