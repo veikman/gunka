@@ -78,11 +78,12 @@ class Unit():
         """Initialize."""
         assert inspect.iscoroutinefunction(work)
         self._work = work
-        self._inputs = inputs or dict()
 
         self.state = self.State()
-        self.children = list()
+        self.inputs = inputs or dict()
         self.outputs = dict()
+
+        self.children = list()
 
     def succeed(self, **kwargs):
         """Retire. Note a success, leaving any remaining work undone."""
@@ -107,7 +108,7 @@ class Unit():
 
         try:
             self.state.time_started = self._get_current_time()
-            await self._work(self, **self._inputs)
+            await self._work(self, **self.inputs)
         except asyncio.CancelledError:
             self.state.cancelled = True
             raise  # Propagated for signalling.
