@@ -38,12 +38,15 @@ class Unit():
 
         """
 
-        def __init__(self):
+        def __init__(self, inputs=None):
             """Initialize pessimistically.
 
             Times of starting and stopping should be timezone-aware UTC
             datetime objects when set, but default to None to indicate that
             the unit has not been started nor stopped.
+
+            Inputs to and outputs from the unit are dicts. The outputs should
+            be serializable at all times.
 
             The remaining properties are Booleans at all times:
 
@@ -62,6 +65,9 @@ class Unit():
             self.time_started = None
             self.time_stopped = None
 
+            self.inputs = inputs or dict()
+            self.outputs = dict()
+
             self.cancelled = False
             self.error = True       # Deliberate pessimism.
             self.failure = True     # Deliberate pessimism.
@@ -74,15 +80,11 @@ class Unit():
             self.error = error
             self.propagate = propagate
 
-    def __init__(self, work=None, inputs=None):
+    def __init__(self, work=None, **kwargs):
         """Initialize."""
         assert inspect.iscoroutinefunction(work)
         self._work = work
-
-        self.state = self.State()
-        self.inputs = inputs or dict()
-        self.outputs = dict()
-
+        self.state = self.State(**kwargs)
         self.children = list()
 
     def succeed(self, **kwargs):
@@ -108,7 +110,7 @@ class Unit():
 
         try:
             self.state.time_started = self._get_current_time()
-            await self._work(self, **self.inputs)
+            await self._work(self, **self.state.inputs)
         except asyncio.CancelledError:
             self.state.cancelled = True
             raise  # Propagated for signalling.

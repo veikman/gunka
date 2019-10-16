@@ -20,7 +20,7 @@ from . import base
 
 def test_boolean_notstarted_false():
     """Check that an unstarted unit is considered false."""
-    async def work(u, **_):
+    async def work(unit, **_):
         pass
 
     unit = base.Unit(work=work)
@@ -29,7 +29,7 @@ def test_boolean_notstarted_false():
 
 def test_boolean_noop_true():
     """Check that a started no-op unit is considered true."""
-    async def work(u, **_):
+    async def work(unit, **_):
         pass
 
     unit = base.Unit(work=work)
@@ -44,7 +44,7 @@ def test_boolean_noop_true():
 def test_concurrency_trivial():
     """Check the work of a parent with two concurrent children."""
     async def child(unit, key=None, value=None):
-        unit.outputs[key] = value
+        unit.state.outputs[key] = value
 
     async def parent_work(unit=None):
         await asyncio.gather(child(unit=unit, key='a', value=1),
@@ -54,7 +54,7 @@ def test_concurrency_trivial():
     asyncio.run(unit())
 
     assert unit
-    assert unit.outputs == dict(a=1, b=2)
+    assert unit.state.outputs == dict(a=1, b=2)
 
 
 def test_exception_under_gather():
@@ -69,9 +69,9 @@ def test_exception_under_gather():
 
     """
     async def child(unit, key=None, value=None):
-        unit.outputs[key + '0'] = value
+        unit.state.outputs[key + '0'] = value
         await asyncio.sleep(value)
-        unit.outputs[key + '1'] = value
+        unit.state.outputs[key + '1'] = value
         unit.fail()
 
     async def parent_work(unit=None):
@@ -82,4 +82,4 @@ def test_exception_under_gather():
     asyncio.run(unit())
 
     assert not unit
-    assert unit.outputs == dict(A0=0, A1=0, B0=1)
+    assert unit.state.outputs == dict(A0=0, A1=0, B0=1)
