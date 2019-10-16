@@ -74,12 +74,11 @@ class Unit():
             self.error = error
             self.propagate = propagate
 
-    def __init__(self, work=None, inputs=None, teardown=lambda: None):
+    def __init__(self, work=None, inputs=None):
         """Initialize."""
         assert inspect.iscoroutinefunction(work)
         self._work = work
         self._inputs = inputs or dict()
-        self._teardown = teardown
 
         self.state = self.State()
         self.children = list()
@@ -123,7 +122,6 @@ class Unit():
             self.state.failure = False
         finally:
             self.state.time_stopped = self._get_current_time()
-            self._teardown()
 
         return self
 
