@@ -1,6 +1,6 @@
 .PHONY: test generic-install deb-package deb-install clean
 
-PYEXEC := python3.7
+PYEXEC := python3
 NAME := gunka
 UNDERSCORE := $(subst -,_,$(NAME))
 DEBNAME := python3-$(NAME)
