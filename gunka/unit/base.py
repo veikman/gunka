@@ -10,9 +10,15 @@
 from __future__ import annotations
 
 # Standard:
+from collections.abc import Hashable
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
 from typing import Awaitable
 from typing import Callable
+from typing import Dict
 from typing import List
+from typing import Optional
 import asyncio
 import datetime
 import inspect
@@ -26,6 +32,7 @@ import inspect
 class BaseUnit():
     """An encapsulated unit of work, without abstractions."""
 
+    @dataclass()
     class State():
         """The state of a unit of work.
 
@@ -38,41 +45,31 @@ class BaseUnit():
 
         Properties are updated by the unit.
 
+        The ‘cancelled’ property describes whether the work was cancelled, in
+        the strict asyncio sense of the word.
+
+        The ‘error’ property also describes the program of which the unit is a
+        part.
+
+        The ‘failure’ property describes the work itself, not the program.
+
+        These Boolean properties should only be checked when the unit is
+        complete. Their order of precedence is as listed here.
+
         """
 
-        def __init__(self, inputs=None):
-            """Initialize pessimistically.
+        # Chronological state. Defaults mean neither started nor stopped.
+        time_started: Optional[datetime.datetime] = field(default=None)
+        time_stopped: Optional[datetime.datetime] = field(default=None)
 
-            Times of starting and stopping should be timezone-aware UTC
-            datetime objects when set, but default to None to indicate that
-            the unit has not been started nor stopped.
+        # Semantic state.
+        inputs: Dict[str, Any] = field(default_factory=dict)
+        outputs: Dict[str, Hashable] = field(default_factory=dict)
 
-            Inputs to and outputs from the unit are dicts. The outputs should
-            be serializable at all times.
-
-            The remaining properties are Booleans at all times:
-
-            * The ‘cancelled’ property describes whether the work was
-              cancelled, in the strict asyncio sense of the word.
-
-            * The ‘error’ property also describes the program of which the unit
-              is a part.
-
-            * The ‘failure’ property describes the work itself.
-
-            These properties should only be checked when the unit is complete.
-            Their order of precedence is as listed here.
-
-            """
-            self.time_started = None
-            self.time_stopped = None
-
-            self.inputs = inputs or dict()
-            self.outputs = dict()
-
-            self.cancelled = False
-            self.error = True       # Deliberate pessimism.
-            self.failure = True     # Deliberate pessimism.
+        # Result atoms.
+        cancelled: bool = field(default=False)
+        error: bool = field(default=True)       # Deliberate pessimism.
+        failure: bool = field(default=True)     # Deliberate pessimism.
 
     class ConclusionSignal(BaseException):
         """A signal to conclude work.
