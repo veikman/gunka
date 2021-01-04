@@ -1,4 +1,4 @@
-.pytest*
+.*
 *egg-info
 deb_dist
 dist
