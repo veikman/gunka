@@ -5,6 +5,7 @@
 # IMPORTS #
 ###########
 
+
 # Future:
 from __future__ import annotations
 
@@ -109,16 +110,12 @@ class BaseUnit():
         """Note an internal error in the program."""
         raise self.ConclusionSignal(error=True, propagate=True)
 
-    def _get_current_time(self):
-        """Return the current UTC date and time."""
-        return datetime.datetime.now(tz=datetime.timezone.utc)
-
     async def __call__(self) -> BaseUnit:
         """Perform work. Return self."""
         assert self.state.time_started is None
 
         try:
-            self.state.time_started = self._get_current_time()
+            self.state.time_started = get_current_time()
             await self._work(self)
         except asyncio.CancelledError:
             self.state.cancelled = True
@@ -133,6 +130,16 @@ class BaseUnit():
             self.state.error = False
             self.state.failure = False
         finally:
-            self.state.time_stopped = self._get_current_time()
+            self.state.time_stopped = get_current_time()
 
         return self
+
+
+def get_current_time() -> datetime.datetime:
+    """Get the current date and time on the local system.
+
+    This function is defined for the simplification of unit tests, as a
+    bare-bones alternative to using a higher-level third-pary library for time.
+
+    """
+    return datetime.datetime.now(tz=datetime.timezone.utc)
