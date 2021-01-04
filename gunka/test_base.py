@@ -43,12 +43,12 @@ def test_boolean_noop_true():
 
 def test_concurrency_trivial():
     """Check the work of a parent with two concurrent children."""
-    async def child(unit, key=None, value=None):
+    async def pseudochild(unit, key=None, value=None):
         unit.state.outputs[key] = value
 
     async def parent_work(unit=None):
-        await asyncio.gather(child(unit=unit, key='a', value=1),
-                             child(unit=unit, key='b', value=2))
+        await asyncio.gather(pseudochild(unit=unit, key='a', value=1),
+                             pseudochild(unit=unit, key='b', value=2))
 
     unit = base.Unit(work=parent_work)
     asyncio.run(unit())
@@ -65,18 +65,19 @@ def test_exception_under_gather():
     to fail.
 
     The expected result is that the first child will complete its work and
-    the second child will be cancelled while asleep.
+    the second child will be cancelled while asleep, because the unit has
+    failed.
 
     """
-    async def child(unit, key=None, value=None):
-        unit.state.outputs[key + '0'] = value
+    async def pseudochild(unit, key=None, value=None):
+        unit.state.outputs[f'{key}0'] = value
         await asyncio.sleep(value)
-        unit.state.outputs[key + '1'] = value
+        unit.state.outputs[f'{key}1'] = value
         unit.fail()
 
     async def parent_work(unit=None):
-        await asyncio.gather(child(unit=unit, key='A', value=0),
-                             child(unit=unit, key='B', value=1))
+        await asyncio.gather(pseudochild(unit=unit, key='A', value=0),
+                             pseudochild(unit=unit, key='B', value=1))
 
     unit = base.Unit(work=parent_work)
     asyncio.run(unit())
