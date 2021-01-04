@@ -5,8 +5,13 @@
 # IMPORTS #
 ###########
 
+# Future:
+from __future__ import annotations
 
 # Standard:
+from typing import Awaitable
+from typing import Callable
+from typing import List
 import asyncio
 import datetime
 import inspect
@@ -83,12 +88,13 @@ class BaseUnit():
             self.error = error
             self.propagate = propagate
 
-    def __init__(self, work=None, **kwargs):
+    def __init__(self, work: Callable[[BaseUnit], Awaitable[None]],
+                 **kwargs):
         """Initialize."""
         assert inspect.iscoroutinefunction(work)
         self._work = work
         self.state = self.State(**kwargs)
-        self.children = list()
+        self.children: List[BaseUnit] = list()
 
     def succeed(self, **kwargs):
         """Retire. Note a success, leaving any remaining work undone."""
@@ -107,13 +113,13 @@ class BaseUnit():
         """Return the current UTC date and time."""
         return datetime.datetime.now(tz=datetime.timezone.utc)
 
-    async def __call__(self):
+    async def __call__(self) -> BaseUnit:
         """Perform work. Return self."""
         assert self.state.time_started is None
 
         try:
             self.state.time_started = self._get_current_time()
-            await self._work(self, **self.state.inputs)
+            await self._work(self)
         except asyncio.CancelledError:
             self.state.cancelled = True
             raise  # Propagated for signalling.
