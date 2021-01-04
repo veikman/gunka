@@ -11,18 +11,14 @@ import asyncio
 import datetime
 import inspect
 
-# Local:
-from . import utils
-from . import pred
-
 
 #############
 # INTERFACE #
 #############
 
 
-class Unit():
-    """An encapsulated unit of work ready for cooperative concurrency."""
+class BaseUnit():
+    """An encapsulated unit of work, without abstractions."""
 
     class State():
         """The state of a unit of work.
@@ -134,12 +130,3 @@ class Unit():
             self.state.time_stopped = self._get_current_time()
 
         return self
-
-    def __bool__(self):
-        """Represent the unit of work in a Boolean context.
-
-        The unit is considered true if it and its children are all complete
-        and succeeded without a noted program error.
-
-        """
-        return utils.first(lambda u: not pred.acceptable(u), self) is None

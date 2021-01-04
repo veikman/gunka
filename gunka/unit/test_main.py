@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Unit tests for the base module, using pytest."""
+"""Unit tests for the main module, using pytest."""
 
 ###########
 # IMPORTS #
@@ -10,7 +10,7 @@
 import asyncio
 
 # Local:
-from . import base
+from gunka.unit.main import Unit
 
 
 #########
@@ -23,7 +23,7 @@ def test_boolean_notstarted_false():
     async def work(unit, **_):
         pass
 
-    unit = base.Unit(work=work)
+    unit = Unit(work=work)
     assert not unit
 
 
@@ -32,7 +32,7 @@ def test_boolean_noop_true():
     async def work(unit, **_):
         pass
 
-    unit = base.Unit(work=work)
+    unit = Unit(work=work)
     asyncio.run(unit())
 
     assert unit.state.time_started
@@ -50,7 +50,7 @@ def test_concurrency_trivial():
         await asyncio.gather(pseudochild(unit=unit, key='a', value=1),
                              pseudochild(unit=unit, key='b', value=2))
 
-    unit = base.Unit(work=parent_work)
+    unit = Unit(work=parent_work)
     asyncio.run(unit())
 
     assert unit
@@ -79,7 +79,7 @@ def test_exception_under_gather():
         await asyncio.gather(pseudochild(unit=unit, key='A', value=0),
                              pseudochild(unit=unit, key='B', value=1))
 
-    unit = base.Unit(work=parent_work)
+    unit = Unit(work=parent_work)
     asyncio.run(unit())
 
     assert not unit

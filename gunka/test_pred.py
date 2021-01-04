@@ -14,7 +14,7 @@ from unittest import mock
 import pytest
 
 # Local:
-from . import base
+from gunka.unit.base import BaseUnit
 from . import pred
 
 
@@ -27,7 +27,7 @@ from . import pred
 def sou():
     """Create a fake state-only unit (SOU) as a fixture."""
     obj = mock.Mock()
-    obj.state = base.Unit.State()
+    obj.state = BaseUnit.State()
     obj.seal()
     return obj
 
