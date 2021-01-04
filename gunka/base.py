@@ -72,8 +72,15 @@ class Unit():
             self.error = True       # Deliberate pessimism.
             self.failure = True     # Deliberate pessimism.
 
-    class ConclusionSignal(Exception):
-        """A signal to conclude work."""
+    class ConclusionSignal(BaseException):
+        """A signal to conclude work.
+
+        In the same way that asyncio.CancelledError inherits from
+        BaseException since Python 3.8, ConclusionSignal also inherits from
+        BaseException. This has the benefit that it is not easily caught by
+        accident in a work function, which would disrupt control flow.
+
+        """
 
         def __init__(self, error=False, propagate=False):
             """Initialize."""
