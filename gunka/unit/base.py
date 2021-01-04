@@ -19,6 +19,7 @@ from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
+from uuid import UUID
 import asyncio
 import datetime
 import inspect
@@ -31,6 +32,25 @@ import inspect
 
 class BaseUnit():
     """An encapsulated unit of work, without abstractions."""
+
+    # Dataclasses defined by this class are intended as minimalistic modules,
+    # to be expanded, replaced or ignored by implementers, as needed.
+
+    @dataclass()
+    class Identification():
+        """The formal identity of a unit of work."""
+
+        application: Optional[UUID] = field(default=None)
+        context: Optional[UUID] = field(default=None)
+        instance: Optional[UUID] = field(default=None)
+        result: Optional[UUID] = field(default=None)
+
+    @dataclass()
+    class UserInterface():
+        """User-facing descriptions of a unit."""
+
+        title: Optional[str] = field(default=None)
+        result: Optional[str] = field(default=None)
 
     @dataclass()
     class State():
@@ -53,7 +73,7 @@ class BaseUnit():
 
         The ‘failure’ property describes the work itself, not the program.
 
-        These Boolean properties should only be checked when the unit is
+        These three Boolean properties should only be checked when the unit is
         complete. Their order of precedence is as listed here.
 
         """
@@ -66,7 +86,7 @@ class BaseUnit():
         inputs: Dict[str, Any] = field(default_factory=dict)
         outputs: Dict[str, Hashable] = field(default_factory=dict)
 
-        # Result atoms.
+        # Non-identifying result atoms.
         cancelled: bool = field(default=False)
         error: bool = field(default=True)       # Deliberate pessimism.
         failure: bool = field(default=True)     # Deliberate pessimism.
@@ -81,8 +101,9 @@ class BaseUnit():
 
         """
 
-        def __init__(self, error=False, propagate=False):
+        def __init__(self, source: BaseUnit, error=False, propagate=False):
             """Initialize."""
+            self.source = source
             self.error = error
             self.propagate = propagate
 
@@ -97,15 +118,15 @@ class BaseUnit():
     def succeed(self, **kwargs):
         """Retire. Note a success, leaving any remaining work undone."""
         self.state.failure = False
-        raise self.ConclusionSignal(**kwargs)
+        raise self.ConclusionSignal(self, **kwargs)
 
     def fail(self, **kwargs):
         """Note a serious problem that is not an internal error."""
-        raise self.ConclusionSignal(**kwargs)
+        raise self.ConclusionSignal(self, **kwargs)
 
     def panic(self):
         """Note an internal error in the program."""
-        raise self.ConclusionSignal(error=True, propagate=True)
+        raise self.ConclusionSignal(self, error=True, propagate=True)
 
     async def __call__(self) -> BaseUnit:
         """Perform work. Return self."""
