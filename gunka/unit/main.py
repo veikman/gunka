@@ -27,9 +27,20 @@ import gunka.pred as pred
 import gunka.utils as utils
 
 
-#############
-# INTERFACE #
-#############
+#######################
+# INTERFACE FUNCTIONS #
+#######################
+
+
+def get_current_time() -> datetime.datetime:
+    """Get the current date and time on the local system.
+
+    This function is defined and exposed for the simplification of unit tests,
+    as a bare-bones alternative to using a higher-level, more easily patched
+    third-party library for time.
+
+    """
+    return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 def has_scaffold(cls: Type[Unit]):
@@ -42,6 +53,11 @@ def has_scaffold(cls: Type[Unit]):
          ],
     )
     return cls
+
+
+#####################
+# INTERFACE CLASSES #
+#####################
 
 
 @has_scaffold
@@ -127,13 +143,3 @@ class Unit(BaseUnit):
 
         """
         return utils.first(lambda u: not pred.acceptable(u), self) is None
-
-
-def get_current_time() -> datetime.datetime:
-    """Get the current date and time on the local system.
-
-    This function is defined for the simplification of unit tests, as a
-    bare-bones alternative to using a higher-level third-pary library for time.
-
-    """
-    return datetime.datetime.now(tz=datetime.timezone.utc)
