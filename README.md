@@ -1,7 +1,7 @@
 ## Gunka
 
-This library delimits and names the individual steps of any piece of work.
-It’s named for the Lojban word *gunka* (meaning “work”).
+This library is used to delimit and name the individual steps of any piece of
+work. It’s named after the Lojban word for work.
 
 Gunka is intended to provide an intermediate level of abstraction in large
 applications, where the end user won’t be interested in the smallest details
@@ -14,23 +14,20 @@ handles only the encapsulation of each unit of work.
 ### Work in progress
 
 Gunka is in a pre-alpha stage. An even earlier draft used Trio for concurrency,
-but the current plan is to use the standard asyncio library. This decision is
-based on the existing plan, as of 2018-07, to add a feature like Trio’s
-nurseries to asyncio in Python 3.8 (see [a talk on that](https://www.youtube.com/watch?v=ReXxO_azV-w)), which would make Trio
-an unnecessary dependency. Until then, asyncio.gather is used as a placeholder.
+but the current plan is to use the standard asyncio library.
 
 ### Design goals
 
+* Procedures are unary functions. No need for one class per step.
+* Units can be arbitrarily nested. You don’t have to follow a flat recipe
+  structure.
 * Your user interface can show, in non-technical terms, what your program is
   doing for the user.
-
 * Non-fatal problems are neatly contained and easy to highlight, while
   fatal problems will propagate.
-
+* Excellent performance through coöperative concurrency.
 * Logging of work and its output is easy, in real time and in retrospect.
-
-* Units are reusable and can be arbitrarily nested. You don’t have to follow
-  a flat recipe structure.
+* Statistical analysis is supported via UUID tagging.
 
 ### Installation
 
