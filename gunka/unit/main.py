@@ -10,8 +10,13 @@
 from __future__ import annotations
 
 # Standard:
+from dataclasses import field
+from dataclasses import make_dataclass
+from dataclasses import replace
 from typing import Awaitable
 from typing import Callable
+from typing import Optional
+from typing import Type
 import asyncio
 import datetime
 import inspect
@@ -27,10 +32,24 @@ import gunka.utils as utils
 #############
 
 
+def has_scaffold(cls: Type[Unit]):
+    """Annotate a new class of unit with a scaffold for instantiating it."""
+    cls.Scaffold = make_dataclass(
+        'Scaffold',
+        [('work', Callable[[cls], Awaitable[None]]),
+         ('id', Optional[cls.Identification], field(default=None)),
+         ('ui', Optional[cls.UserInterface], field(default=None)),
+         ],
+    )
+    return cls
+
+
+@has_scaffold
 class Unit(BaseUnit):
     """An encapsulated unit of work ready for cooperative concurrency.
 
-    This class adds some higher-level functionality for convenience.
+    This class adds support for execution and some higher-level functionality
+    for convenience.
 
     """
 
@@ -50,9 +69,17 @@ class Unit(BaseUnit):
             self.error = error
             self.propagate = propagate
 
-    def __init__(self, work: Callable[[Unit], Awaitable[None]]):
+    # Refer to the has_scaffold function.
+    Scaffold: Type
+
+    def __init__(self, scaffold):
+        assert isinstance(scaffold, self.Scaffold)
         super().__init__()
-        self._work = work
+        self._work = scaffold.work
+        if scaffold.id is not None:
+            self.id = replace(scaffold.id)
+        if scaffold.ui is not None:
+            self.ui = replace(scaffold.ui)
 
     def succeed(self, **kwargs):
         """Retire. Note a success, leaving any remaining work undone."""

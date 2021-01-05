@@ -20,7 +20,7 @@ from gunka.unit.main import Unit
 
 
 def test_title_required_omitted():
-    note = define_work_decorator(require_title=True)
+    note = define_work_decorator(Unit, require_title=True)
 
     with pytest.raises(AssertionError):
         @note()  # Title of unit not specified.
@@ -29,7 +29,7 @@ def test_title_required_omitted():
 
 
 def test_title_required_included():
-    note = define_work_decorator(require_title=True)
+    note = define_work_decorator(Unit, require_title=True)
 
     @note(title='lo tcita ku')
     async def work(unit: Unit):
