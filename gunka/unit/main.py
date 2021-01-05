@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The highest superstructure of gunka itself."""
+"""The main infrastructure of Gunka’s control flow."""
 
 ###########
 # IMPORTS #
@@ -25,6 +25,7 @@ import datetime
 import inspect
 
 # Local:
+from gunka.exc import Signal
 from gunka.unit.base import BaseUnit
 import gunka.pred as pred
 import gunka.utils as utils
@@ -72,15 +73,8 @@ class Unit(BaseUnit):
 
     """
 
-    class ConclusionSignal(BaseException):
-        """A signal to conclude work.
-
-        In the same way that asyncio.CancelledError inherits from
-        BaseException since Python 3.8, ConclusionSignal also inherits from
-        BaseException. This has the benefit that it is not easily caught by
-        accident in a work function, which would disrupt control flow.
-
-        """
+    class ConclusionSignal(Signal):
+        """A signal to conclude work."""
 
         def __init__(self, source: Unit, error=False, propagate=False):
             """Initialize."""
