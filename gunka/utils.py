@@ -20,14 +20,15 @@ from gunka.unit.base import BaseUnit
 #############
 
 
-def flatten(unit: BaseUnit) -> Iterable[BaseUnit]:
+def preorder(unit: BaseUnit) -> Iterable[BaseUnit]:
     """Generate the passed unit and its family tree in one flat stream.
 
     This is preorder tree traversal.
 
     """
     yield unit
-    yield from map(flatten, unit.children)
+    for child in unit.children:
+        yield from preorder(child)
 
 
 def first(predicate: Callable[[BaseUnit], bool], unit: BaseUnit
@@ -38,7 +39,7 @@ def first(predicate: Callable[[BaseUnit], bool], unit: BaseUnit
     else return None.
 
     """
-    for u in flatten(unit):
+    for u in preorder(unit):
         if predicate(u):
             return u
     return None

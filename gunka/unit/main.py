@@ -10,11 +10,14 @@
 from __future__ import annotations
 
 # Standard:
+from copy import deepcopy
 from dataclasses import field
 from dataclasses import make_dataclass
 from dataclasses import replace
+from typing import Any
 from typing import Awaitable
 from typing import Callable
+from typing import Dict
 from typing import Optional
 from typing import Type
 import asyncio
@@ -91,11 +94,37 @@ class Unit(BaseUnit):
     def __init__(self, scaffold):
         assert isinstance(scaffold, self.Scaffold)
         super().__init__()
+
         self._work = scaffold.work
+
         if scaffold.id is not None:
             self.id = replace(scaffold.id)
+
         if scaffold.ui is not None:
             self.ui = replace(scaffold.ui)
+
+    def new_child(self, scaffold,
+                  cls: Type[Unit] = None,
+                  copy_inputs: bool = True,
+                  new_inputs: Dict[str, Any] = None,
+                  ):
+        """Create and register a new child unit of self."""
+        # TODO: Convenient support for context UUID.
+        # TODO: Convenient support for a title other than the scaffold’s.
+        if cls is None:
+            cls = type(self)
+
+        child = cls(scaffold)
+
+        if copy_inputs:
+            child.state.inputs = deepcopy(self.state.inputs)
+
+        if new_inputs is not None:
+            child.state.inputs.update(new_inputs)
+
+        self.children.append(child)
+
+        return child
 
     def succeed(self, **kwargs):
         """Retire. Note a success, leaving any remaining work undone."""
