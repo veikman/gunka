@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Conveniences for annotating work functions for units of work."""
+"""Conveniences for raising scaffolding."""
 
 ##########
 # IMPORT #
@@ -7,12 +7,15 @@
 
 
 # Standard:
-from asyncio import iscoroutinefunction
+from typing import Any
+from typing import Callable
 from typing import Optional
+from typing import Tuple
 from typing import Type
 from uuid import UUID
 
 # Local:
+from gunka.exc import ValidationFailure
 from gunka.unit.main import Unit
 
 
@@ -24,9 +27,14 @@ from gunka.unit.main import Unit
 def define_work_decorator(unit_type: Type[Unit],
                           always_annotate_with_id=False,
                           always_annotate_with_ui=False,
-                          require_title=False,
-                          require_application_uuid=False):
-    """Define a means of annotating work functions."""
+                          validators: Tuple[Callable[[Any], bool], ...] = (),
+                          ):
+    """Define a means of annotating work functions.
+
+    Using validators passed to this function, the readiness of a work function
+    can be assessed at time of definition, before a unit is created from it.
+
+    """
     class_id = unit_type.Identification
     class_ui = unit_type.UserInterface
 
@@ -34,15 +42,8 @@ def define_work_decorator(unit_type: Type[Unit],
                        title: Optional[str] = None,
                        ):
         """Take metadata for a decorator of work functions."""
-        annotate_with_id = always_annotate_with_id
-        if require_application_uuid:
-            annotate_with_id = True
-            assert isinstance(uuid_application, UUID)
-
-        annotate_with_ui = always_annotate_with_ui
-        if require_title:
-            annotate_with_ui = True
-            assert isinstance(title, str)
+        annotate_with_id = always_annotate_with_id or uuid_application
+        annotate_with_ui = always_annotate_with_ui or title
 
         def get_scaffold(work):
             """Get a scaffold for making units.
@@ -51,8 +52,9 @@ def define_work_decorator(unit_type: Type[Unit],
             that work function, along with other metadata for initializing a
             unit to encapsulate the work.
 
+            Validate the scaffold.
+
             """
-            assert iscoroutinefunction(work)
             scaffold = unit_type.Scaffold(work=work)
 
             if annotate_with_id:
@@ -61,8 +63,16 @@ def define_work_decorator(unit_type: Type[Unit],
             if annotate_with_ui:
                 scaffold.ui = class_ui(title=title)
 
+            for validator in validators:
+                if not validator(scaffold):
+                    s = 'Work function not prepared for unit.'
+                    raise ValidationFailure(s)
+
             return scaffold
 
         return get_scaffold
 
     return work_decorator
+
+
+permissive = define_work_decorator(Unit)

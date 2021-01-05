@@ -12,6 +12,8 @@ import pytest
 # Local:
 from gunka.decorator import define_work_decorator
 from gunka.unit.main import Unit
+from gunka.pred import require_title
+from gunka.exc import ValidationFailure
 
 
 #########
@@ -20,20 +22,22 @@ from gunka.unit.main import Unit
 
 
 def test_title_required_omitted():
-    note = define_work_decorator(Unit, require_title=True)
+    """Check omitting a title when a validator requires it."""
+    note = define_work_decorator(Unit, validators=(require_title,))
 
-    with pytest.raises(AssertionError):
-        @note()  # Title of unit not specified.
+    with pytest.raises(ValidationFailure):
+        @note()  # Title of unit required but not specified.
         async def work(unit: Unit):
             pass
 
 
 def test_title_required_included():
-    note = define_work_decorator(Unit, require_title=True)
+    """Check including a title when a validator requires it."""
+    note = define_work_decorator(Unit, validators=(require_title,))
 
     @note(title='lo tcita ku')
-    async def work(unit: Unit):
+    async def tcita(unit: Unit):
         pass
 
-    assert work.ui is not None
-    assert work.ui.title == 'lo tcita ku'
+    assert tcita.ui is not None
+    assert tcita.ui.title == 'lo tcita ku'
