@@ -28,7 +28,7 @@ import inspect
 from gunka.exc import Signal
 from gunka.unit.base import BaseUnit
 import gunka.pred as pred
-import gunka.utils as utils
+import gunka.util as util
 
 
 #######################
@@ -134,7 +134,15 @@ class Unit(BaseUnit):
         raise self.ConclusionSignal(self, error=True, propagate=True)
 
     async def __call__(self) -> Unit:
-        """Perform work. Return self."""
+        """Perform work. Return self.
+
+        Ensure work is not performed more than once.
+
+        While performing work, catch BaseExceptions relevant to the framework.
+        By design, general exceptions are not caught, in order to maximize
+        their visibility.
+
+        """
         assert self.state.time_started is None
         assert inspect.iscoroutinefunction(self._work)
 
@@ -165,4 +173,4 @@ class Unit(BaseUnit):
         and succeeded without a noted program error.
 
         """
-        return utils.first(lambda u: not pred.acceptable(u), self) is None
+        return util.first(lambda u: not pred.acceptable(u), self) is None
